@@ -72,10 +72,15 @@ function marksToArray(marks) {
 function checkWins(marksObj) {
   const marks = marksToArray(marksObj);
   const grid = Array(16).fill(null);
-  // só acertos pintam o grid permanentemente
+  // acertos têm prioridade visual; erros não-corrigidos aparecem como 'w'
   marks.forEach(m => {
-    if (m.correct) grid[m.cellIdx] = 'c';
+    if (m.correct) {
+      grid[m.cellIdx] = 'c';
+    } else if (grid[m.cellIdx] !== 'c') {
+      grid[m.cellIdx] = 'w';
+    }
   });
+  // só verdes contam pra LINHA e BINGO
   const linha = LINES.some(line => line.every(i => grid[i] === 'c'));
   const bingo = grid.every(c => c === 'c');
   const correct = marks.filter(m => m.correct).length;
@@ -96,22 +101,30 @@ function avgResponseSeconds(playerMarks, drawnAt) {
 }
 
 function buildUniqueCard(distribution, existingPlayers) {
-  // ESCASSEZ LEVE: cada cartela tem 1 troca aleatória — uma categoria perde 1 ocorrência,
-  // outra ganha 1. Resultado: cartelas variam levemente nas categorias disponíveis,
-  // o que evita empate técnico no fim do jogo.
+  // ESCASSEZ LEVE: cada cartela passa por 1 troca aleatória —
+  // uma categoria perde 1 ocorrência, outra ganha 1. Nunca remove
+  // a ÚLTIMA ocorrência de uma categoria, então toda cartela mantém
+  // todas as categorias disponíveis (só varia a quantidade).
+  const SCARCITY_SWAPS = 1;
   const existingHashes = new Set(
     Object.values(existingPlayers || {}).map(p => (p.cardLayout || []).join('|'))
   );
   let card, attempts = 0;
   do {
     let pool = [...distribution];
-    // remove 1 instância aleatória
-    if (pool.length > 1) {
-      const removeIdx = Math.floor(Math.random() * pool.length);
-      const removed = pool[removeIdx];
+    for (let swap = 0; swap < SCARCITY_SWAPS; swap++) {
+      // conta ocorrências de cada categoria no pool atual
+      const counts = {};
+      pool.forEach(c => counts[c] = (counts[c] || 0) + 1);
+      // só remove de categorias que têm mais de 1 ocorrência (preserva todas)
+      const removableIdxs = [];
+      pool.forEach((c, i) => { if (counts[c] > 1) removableIdxs.push(i); });
+      if (removableIdxs.length === 0) break;
+      const removeIdx = removableIdxs[Math.floor(Math.random() * removableIdxs.length)];
+      const removedVal = pool[removeIdx];
       pool.splice(removeIdx, 1);
-      // duplica uma OUTRA instância (diferente da removida) pra completar 16
-      const candidates = pool.filter(x => x !== removed);
+      // duplica uma categoria diferente da removida
+      const candidates = pool.filter(x => x !== removedVal);
       const dup = (candidates.length > 0 ? candidates : pool)[
         Math.floor(Math.random() * (candidates.length > 0 ? candidates.length : pool.length))
       ];
@@ -696,7 +709,10 @@ function renderPlayerRow(p, currentSentenceIdx) {
       <div class="mini-grid">${grid}</div>
       <div class="player-info">
         <div class="name">${escapeHtml(p.name)}</div>
-        <div class="stats">${wins.correct} acerto${wins.correct === 1 ? '' : 's'} · ${wins.wrong} erro${wins.wrong === 1 ? '' : 's'}</div>
+        <div class="stats">
+          <span style="color: var(--green); font-weight: 700;">${wins.correct} ✓</span>
+          ${wins.wrong > 0 ? `<span style="color: var(--red); font-weight: 700; margin-left: 8px;">${wins.wrong} ✗</span>` : `<span style="color: rgba(26,35,126,0.4); margin-left: 8px;">0 ✗</span>`}
+        </div>
       </div>
       ${badge}
     </div>
