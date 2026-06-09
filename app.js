@@ -1077,11 +1077,17 @@ function attachListeners() {
     setState({ modal: null, uploadPreview: null, uploadError: null });
   });
   document.getElementById('btn-upload-confirm')?.addEventListener('click', handleUploadConfirm);
-  document.getElementById('btn-pick-file')?.addEventListener('click', () => {
-    document.getElementById('file-input')?.click();
-  });
-  document.getElementById('file-input')?.addEventListener('change', e => {
-    handleFileSelected(e.target.files[0]);
+document.getElementById('btn-pick-file')?.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json,*/*';
+    input.style.display = 'none';
+    input.addEventListener('change', e => {
+      handleFileSelected(e.target.files[0]);
+      input.remove();
+    });
+    document.body.appendChild(input);
+    input.click();
   });
   const dropZone = document.getElementById('drop-zone');
   if (dropZone) {
