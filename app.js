@@ -405,8 +405,27 @@ function attachCustomBingosListener() {
 }
 
 // ─── Celebração ────────────────────────────────────────────────
-const BINGO_MSGS = ['BINGO!', 'BINGÃO!', 'CARTELA CHEIA!', 'ARRASOU, ARRASOU!', 'O MESTRE TÁ ORGULHOSO!'];
-const LINHA_MSGS = ['LINHA!', 'LINHA CHEIA!', 'ÊÊÊ!', 'BORA, BORA!', 'TÁ VOANDO!'];
+const BINGO_MSGS = [
+  'BINGO!',
+  'BINGÃO!',
+  'CARTELA CHEIA!',
+  'ARRASOU, ARRASOU!',
+  'O MESTRE TÁ ORGULHOSO!',
+  'GENIALIDADE DETECTADA!',
+  'O MESTRE NEM PRECISAVA TER ENSINADO!',
+  'DEUSES DA GRAMÁTICA SORRIRAM PRA VOCÊ!',
+  'IMPRESSIONANTE — E O MESTRE NÃO SE IMPRESSIONA FÁCIL!'
+];
+const LINHA_MSGS = [
+  'LINHA!',
+  'LINHA CHEIA!',
+  'ÊÊÊ!',
+  'BORA, BORA!',
+  'TÁ VOANDO!',
+  'O MESTRE TÁ DE OLHO!',
+  'QUASE O MESTRE!',
+  'LINDOOOO!'
+];
 
 function triggerCelebrate(type) {
   const pool = type === 'BINGO!' ? BINGO_MSGS : LINHA_MSGS;
@@ -441,13 +460,25 @@ function renderLanding() {
     <div class="ticker-fixed-top ticker"></div>
     <div class="ticker-fixed-bottom ticker"></div>
     <div class="center-screen">
-      <div style="width: 100%; max-width: 440px;" class="pop-in">
+      <div style="width: 100%; max-width: 460px;" class="pop-in">
         <div class="text-center mb-4">
-          <div class="display" style="font-size: 11px; color: var(--red); letter-spacing: 0.25em; margin-bottom: 4px;">
-            ★ ★ ★
+          <div class="display" style="font-size: 11px; color: var(--red); letter-spacing: 0.3em; margin-bottom: 6px;">
+            ★ ★ ★ ★ ★
           </div>
-          <div class="display" style="font-size: 13px; color: var(--navy); letter-spacing: 0.2em; margin-bottom: 8px;">
-            MESTRE LINDÃO PAULO APRESENTA
+          <div class="display" style="font-size: 11px; color: var(--navy); letter-spacing: 0.18em; opacity: 0.7;">
+            APRESENTAÇÃO TRIUNFAL · EVENTO ÚNICO · INESQUECÍVEL
+          </div>
+          <div class="display" style="font-size: 28px; color: var(--red); letter-spacing: 0.04em; margin-top: 6px; line-height: 1;">
+            MESTRE LINDÃO
+          </div>
+          <div class="display" style="font-size: 38px; color: var(--navy); letter-spacing: 0.04em; line-height: 1;">
+            PAULO HENRIQUE
+          </div>
+          <div class="display" style="font-size: 11px; color: var(--navy); letter-spacing: 0.18em; opacity: 0.7; margin-top: 4px;">
+            (o melhor professor de português conhecido)
+          </div>
+          <div class="display" style="font-size: 12px; color: var(--navy); letter-spacing: 0.2em; margin: 14px 0 6px;">
+            apresenta com exclusividade:
           </div>
           <h1 class="display" style="font-size: 88px; color: var(--navy); line-height: 0.9;">
             BIN<span style="color: var(--red);">GO</span>
@@ -455,10 +486,13 @@ function renderLanding() {
           <div class="display" style="font-size: 18px; color: rgba(26,35,126,0.65); margin-top: 6px;">
             de língua portuguesa
           </div>
+          <div class="display" style="font-size: 11px; color: rgba(26,35,126,0.5); letter-spacing: 0.1em; margin-top: 4px;">
+            90% carisma · 10% gramática · 100% Mestre
+          </div>
         </div>
 
         <div class="card">
-          <label>Seu nome</label>
+          <label>Seu nome, humilde aprendiz</label>
           <input
             type="text"
             id="input-name"
@@ -471,16 +505,16 @@ function renderLanding() {
           ${state.joinError ? `<div style="color: var(--red); font-size: 13px; margin-top: 10px;">${escapeHtml(state.joinError)}</div>` : ''}
 
           <button id="btn-join" class="btn btn-primary mt-3" style="width: 100%;">
-            ENTRAR NO JOGO →
+            ENTRAR (e tentar superar o Mestre) →
           </button>
 
           <button id="btn-teacher" class="btn-link mt-3" style="display: block; margin: 12px auto 0; text-align: center;">
-            sou o Mestre (ou outro professor)
+            sou o próprio Mestre · ou plebeu autorizado
           </button>
         </div>
 
-        <div class="text-center mt-4" style="font-size: 11px; color: rgba(26,35,126,0.5); letter-spacing: 0.1em; font-family: 'Bricolage Grotesque';">
-          GRAMÁTICA · CONFETE · E O MESTRE LINDÃO
+        <div class="text-center mt-4" style="font-size: 10px; color: rgba(26,35,126,0.55); letter-spacing: 0.1em; font-family: 'Bricolage Grotesque';">
+          PREMIADO POR NENHUMA INSTITUIÇÃO · MAS O MELHOR MESMO ASSIM
         </div>
       </div>
     </div>
@@ -497,15 +531,15 @@ function renderTeacher() {
       <div class="ticker"></div>
       <div class="app-header red">
         <div>
-          <div class="title">PAINEL DO MESTRE</div>
-          <div class="sub">escolhe o bingo ou sobe um novo</div>
+          <div class="title">🎩 TRONO DO MESTRE</div>
+          <div class="sub">escolha qual lição vai dar hoje</div>
         </div>
-        <button id="btn-exit-teacher" class="btn-link" style="color: white;">sair</button>
+        <button id="btn-exit-teacher" class="btn-link" style="color: white;">sair do trono</button>
       </div>
       <div class="container">
 
         <h2 class="display text-center mt-4 mb-3" style="font-size: 26px;">
-          QUAL BINGO VAI ROLAR HOJE?
+          QUAL CONHECIMENTO O MESTRE VAI COMPARTILHAR?
         </h2>
 
         <div class="bingo-options">
@@ -564,10 +598,10 @@ function renderTeacher() {
     <div class="ticker"></div>
     <div class="app-header red">
       <div>
-        <div class="title">PAINEL DO MESTRE</div>
-        <div class="sub">${escapeHtml(bd.name)} · ${playersArr.length} aluno${playersArr.length === 1 ? '' : 's'}</div>
+        <div class="title">🎩 TRONO DO MESTRE</div>
+        <div class="sub">${escapeHtml(bd.name)} · ${playersArr.length} aluno${playersArr.length === 1 ? '' : 's'} sob comando</div>
       </div>
-      <button id="btn-exit-teacher" class="btn-link" style="color: white;">sair</button>
+      <button id="btn-exit-teacher" class="btn-link" style="color: white;">sair do trono</button>
     </div>
 
     <div class="container">
@@ -584,7 +618,7 @@ function renderTeacher() {
         ${current ? `
           <div class="top">
             <div>Frase ${drawn.length} / ${sentences.length} · ${remaining} restantes</div>
-            <div style="opacity: 0.6;">leia em voz alta, duas vezes</div>
+            <div style="opacity: 0.6;">leia com a majestade habitual, duas vezes</div>
           </div>
           <div class="quote">"${escapeHtml(current.text)}"</div>
           <div class="meta">
@@ -593,8 +627,8 @@ function renderTeacher() {
           </div>
         ` : `
           <div class="text-center" style="padding: 14px 0;">
-            <div class="display" style="color: var(--yellow); font-size: 22px;">PRONTO PARA COMEÇAR</div>
-            <div style="opacity: 0.8; font-size: 14px;">Toque o botão amarelo abaixo</div>
+            <div class="display" style="color: var(--yellow); font-size: 22px;">O MESTRE ESTÁ PRONTO</div>
+            <div style="opacity: 0.8; font-size: 14px;">toque o botão amarelo e dê o pontapé inicial</div>
           </div>
         `}
       </div>
@@ -611,12 +645,12 @@ function renderTeacher() {
 
       <div class="players-panel">
         <div class="header">
-          <span>ALUNOS NO JOGO</span>
+          <span>SÚDITOS NO JOGO</span>
           <span class="sub">atualiza em tempo real</span>
         </div>
         ${playersArr.length === 0 ? `
           <div class="text-center p-4" style="color: rgba(26,35,126,0.6);">
-            Manda o link pra galera, Mestre. Eles vão chegando aqui.
+            Manda o link pra galera, Mestre. Os admiradores vão aparecer aqui.
           </div>
         ` : ranked.map(p => renderPlayerRow(p, game.currentSentenceIdx)).join('')}
       </div>
@@ -680,12 +714,18 @@ function renderStudent() {
     return `
       <div class="ticker-fixed-top ticker"></div>
       <div class="center-screen">
-        <div class="text-center">
-          <div class="display" style="font-size: 40px; color: var(--navy);">olá, ${escapeHtml(player?.name || '')}!</div>
-          <div class="display mt-3" style="font-size: 20px; color: rgba(26,35,126,0.6); animation: pulse 1.5s infinite;">
+        <div class="text-center" style="padding: 0 16px;">
+          <div class="display" style="font-size: 34px; color: var(--navy);">olá, ${escapeHtml(player?.name || '')}!</div>
+          <div class="display mt-2" style="font-size: 14px; color: rgba(26,35,126,0.55); letter-spacing: 0.1em;">
+            VOCÊ AGUARDA SUA AUDIÊNCIA COM O MESTRE
+          </div>
+          <div class="display mt-4" style="font-size: 18px; color: var(--red); animation: pulse 1.5s infinite;">
             o Mestre Lindão já vem... segura aí 🫡
           </div>
-          <button id="btn-leave" class="btn-link mt-4">sair</button>
+          <div class="display mt-3" style="font-size: 12px; color: rgba(26,35,126,0.5); font-style: italic;">
+            (provavelmente ele tá ajeitando a beleza)
+          </div>
+          <button id="btn-leave" class="btn-link mt-4">desistir da glória 🏃</button>
         </div>
       </div>
     `;
@@ -730,18 +770,18 @@ function renderStudent() {
     <div style="display: flex; justify-content: center;">
       ${current ? (alreadyMarked ? `
         <div class="status-banner status-marked">
-          <div class="lbl">frase ${(game.drawnIndices || []).length} · você já marcou</div>
+          <div class="lbl">frase ${(game.drawnIndices || []).length} · marcou e agora reza 🙏</div>
           <div class="phrase-display">"${escapeHtml(current.text)}"</div>
-          <div class="lbl mt-1">⏳ aguarde a próxima</div>
+          <div class="lbl mt-1">⏳ aguarde a próxima decisão do Mestre</div>
         </div>
       ` : `
         <div class="status-banner status-active">
-          <div class="lbl">frase ${(game.drawnIndices || []).length} · toque a categoria certa</div>
+          <div class="lbl">frase ${(game.drawnIndices || []).length} · não decepcione o Mestre</div>
           <div class="phrase-display">"${escapeHtml(current.text)}"</div>
         </div>
       `) : `
         <div class="status-banner status-waiting">
-          <div class="main" style="opacity: 0.7;">o Mestre tá escolhendo a próxima... 👀</div>
+          <div class="main" style="opacity: 0.7;">o Mestre tá decidindo seu destino 🔮</div>
         </div>
       `}
     </div>
@@ -749,7 +789,7 @@ function renderStudent() {
     <div class="bingo-card-wrapper">
       <div class="bingo-card">
         <div class="bingo-card-title">
-          CARTELA · ${escapeHtml(player.name).toUpperCase()}
+          CARTELA DE ${escapeHtml(player.name).toUpperCase()} · APROVADA PELO MESTRE
         </div>
         <div class="bingo-grid">
           ${player.cardLayout.map((val, idx) => renderCell(val, idx, player.marks, canMark, bd.hint || {}, game.currentSentenceIdx)).join('')}
@@ -758,11 +798,11 @@ function renderStudent() {
 
       <div class="text-center mt-3">
         ${wins.bingo ? `
-          <div class="display" style="font-size: 28px; color: var(--red);">🏆 VOCÊ FEZ BINGO!</div>
+          <div class="display" style="font-size: 28px; color: var(--red);">🏆 BINGO! O MESTRE TE APROVA!</div>
         ` : wins.linha ? `
-          <div class="display" style="font-size: 22px; color: var(--green);">🎯 LINHA COMPLETA!</div>
+          <div class="display" style="font-size: 22px; color: var(--green);">🎯 LINHA! TÁ INDO BEM!</div>
         ` : `
-          <div style="font-size: 13px; color: rgba(26,35,126,0.6);">complete uma linha, coluna ou diagonal de 4</div>
+          <div style="font-size: 13px; color: rgba(26,35,126,0.6);">forme uma linha, coluna ou diagonal de 4 e impressione o Mestre</div>
         `}
       </div>
     </div>
@@ -824,16 +864,16 @@ function renderRanking() {
     <div class="ticker"></div>
     <div class="app-header">
       <div>
-        <div class="title">🏆 RANKING FINAL</div>
-        <div class="sub">${escapeHtml(bd?.name || '')} · ${playersArr.length} aluno${playersArr.length === 1 ? '' : 's'}</div>
+        <div class="title">🏆 A HIERARQUIA FINAL</div>
+        <div class="sub">${escapeHtml(bd?.name || '')} · ${playersArr.length} aluno${playersArr.length === 1 ? '' : 's'} · julgados pelo Mestre</div>
       </div>
-      ${isTeacher ? `<button id="btn-exit-teacher" class="btn-link" style="color: var(--yellow);">sair</button>` : `<button id="btn-leave" class="btn-link" style="color: var(--yellow);">sair</button>`}
+      ${isTeacher ? `<button id="btn-exit-teacher" class="btn-link" style="color: var(--yellow);">sair do trono</button>` : `<button id="btn-leave" class="btn-link" style="color: var(--yellow);">sair</button>`}
     </div>
 
     <div class="podium-screen">
       ${ranked.length === 0 ? `
         <div class="text-center" style="padding: 40px;">
-          <div class="display" style="font-size: 24px; color: var(--navy);">nenhum aluno participou</div>
+          <div class="display" style="font-size: 24px; color: var(--navy);">ninguém participou. o Mestre está decepcionado.</div>
         </div>
       ` : `
         <div class="podium">
@@ -886,13 +926,13 @@ function renderRanking() {
 
         ${isTeacher ? `
           <div class="action-row mt-4">
-            <button id="btn-print" class="btn btn-primary">🖨️ IMPRIMIR / SALVAR PDF</button>
+            <button id="btn-print" class="btn btn-primary">🖨️ IMPRIMIR (pro Mestre arquivar)</button>
             <button id="btn-reopen" class="btn btn-outline">↩ REABRIR JOGO</button>
             <button id="btn-new-game" class="btn btn-red">+ NOVO JOGO</button>
           </div>
         ` : `
           <div class="text-center mt-4" style="font-size: 14px; color: rgba(26,35,126,0.7);">
-            Obrigado por participar! 🎉
+            Obrigado por participar do espetáculo do Mestre! 🎉
           </div>
         `}
       `}
@@ -909,12 +949,12 @@ function renderModal() {
     return `
       <div class="modal-backdrop" id="modal-backdrop">
         <div class="modal ${state.pinError ? 'shake' : ''}">
-          <h2 style="color: var(--red);">🔒 Senha do professor</h2>
-          <p>Quem souber a senha consegue iniciar e gerenciar jogos.</p>
+          <h2 style="color: var(--red);">🔒 Senha sagrada do Mestre</h2>
+          <p>Só verdadeiros mestres (ou plebeus autorizados pelo Mestre Paulo) entram.</p>
           <input type="password" id="input-pin" class="input" placeholder="••••••••" autocomplete="off">
           <div class="modal-buttons mt-3">
             <button id="btn-pin-cancel" class="btn btn-outline">cancelar</button>
-            <button id="btn-pin-submit" class="btn btn-red">entrar</button>
+            <button id="btn-pin-submit" class="btn btn-red">entrar no trono</button>
           </div>
         </div>
       </div>
@@ -925,8 +965,8 @@ function renderModal() {
     return `
       <div class="modal-backdrop" id="modal-backdrop">
         <div class="modal">
-          <h2 style="color: var(--red);">Resetar?</h2>
-          <p>Vai apagar o jogo atual e todos os alunos terão que entrar de novo.</p>
+          <h2 style="color: var(--red);">Resetar tudo, Mestre?</h2>
+          <p>Vai apagar o jogo atual e a galera vai ter que entrar de novo.</p>
           <div class="modal-buttons">
             <button id="btn-reset-cancel" class="btn btn-outline">cancelar</button>
             <button id="btn-reset-confirm" class="btn btn-red">resetar</button>
@@ -940,8 +980,8 @@ function renderModal() {
     return `
       <div class="modal-backdrop" id="modal-backdrop">
         <div class="modal">
-          <h2>Encerrar o jogo?</h2>
-          <p>O ranking aparece para todos. Você pode reabrir depois se quiser.</p>
+          <h2>Encerrar e revelar a hierarquia?</h2>
+          <p>O ranking aparece pra todo mundo. Você pode reabrir depois se quiser.</p>
           <div class="modal-buttons">
             <button id="btn-end-cancel" class="btn btn-outline">cancelar</button>
             <button id="btn-end-confirm" class="btn btn-primary">encerrar</button>
@@ -955,8 +995,8 @@ function renderModal() {
     return `
       <div class="modal-backdrop" id="modal-backdrop">
         <div class="modal">
-          <h2 style="color: var(--red);">Apagar bingo?</h2>
-          <p>O bingo <strong>${escapeHtml(m.name)}</strong> será removido. Esta ação não pode ser desfeita.</p>
+          <h2 style="color: var(--red);">Apagar este bingo?</h2>
+          <p>O bingo <strong>${escapeHtml(m.name)}</strong> some pra sempre. Sem retorno, nem o Mestre te salva.</p>
           <div class="modal-buttons">
             <button id="btn-delbingo-cancel" class="btn btn-outline">cancelar</button>
             <button id="btn-delbingo-confirm" class="btn btn-red" data-del-confirm="${escapeHtml(m.bingoId)}">apagar</button>
@@ -972,8 +1012,8 @@ function renderModal() {
     return `
       <div class="modal-backdrop" id="modal-backdrop">
         <div class="modal" style="max-width: 520px;">
-          <h2>Adicionar bingo novo</h2>
-          <p>Arraste o arquivo <code>.json</code> ou clique para selecionar.</p>
+          <h2>Adicionar novo bingo ao arsenal</h2>
+          <p>Arraste o arquivo <code>.json</code> ou clique pra selecionar.</p>
 
           <div class="drop-zone" id="drop-zone">
             <div class="drop-zone-icon">📥</div>
@@ -1006,7 +1046,7 @@ function renderModal() {
           <div class="modal-buttons mt-3">
             <button id="btn-upload-cancel" class="btn btn-outline">cancelar</button>
             <button id="btn-upload-confirm" class="btn btn-primary" ${preview && !errors ? '' : 'disabled'}>
-              ${preview ? 'adicionar' : 'esperando arquivo...'}
+              ${preview ? 'adicionar ao arsenal' : 'esperando arquivo...'}
             </button>
           </div>
         </div>
