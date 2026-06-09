@@ -1276,10 +1276,6 @@ async function handleDeleteBingo(id) {
 
 function handleFileSelected(file) {
   if (!file) return;
-  if (!file.name.toLowerCase().endsWith('.json')) {
-    setState({ uploadError: ['O arquivo precisa ser .json'], uploadPreview: null });
-    return;
-  }
   const reader = new FileReader();
   reader.onload = (ev) => {
     try {
