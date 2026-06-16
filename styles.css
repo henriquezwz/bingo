@@ -812,3 +812,98 @@ label {
   .full-ranking, .podium-spot { box-shadow: none !important; border-width: 2px; }
   .podium { page-break-after: avoid; }
 }
+
+/* ═══════════ PLACAR PROJETÁVEL AO VIVO ═══════════ */
+.scoreboard-screen {
+  min-height: 100vh;
+  background: var(--navy);
+  color: white;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.scoreboard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.sb-title {
+  font-family: 'Bricolage Grotesque';
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--yellow);
+  line-height: 1;
+}
+.sb-sub { font-size: 16px; opacity: 0.8; margin-top: 4px; }
+.scoreboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.sb-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 14px 22px;
+  /* a transição de 'order' não anima, mas o fade/scale dá sensação de movimento */
+  transition: background 0.4s, transform 0.4s;
+  animation: sbIn 0.4s ease;
+}
+@keyframes sbIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.sb-rank {
+  font-family: 'Bricolage Grotesque';
+  font-weight: 800;
+  font-size: 30px;
+  min-width: 52px;
+  text-align: center;
+}
+.sb-name {
+  flex: 1;
+  font-family: 'Bricolage Grotesque';
+  font-weight: 700;
+  font-size: 26px;
+}
+.sb-score {
+  font-family: 'Bricolage Grotesque';
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--yellow);
+}
+.sb-top { background: rgba(255,193,7,0.18); }
+.sb-pos-1 {
+  background: linear-gradient(135deg, rgba(255,193,7,0.35), rgba(255,193,7,0.12));
+  transform: scale(1.03);
+  box-shadow: 0 4px 20px rgba(255,193,7,0.25);
+}
+.sb-pos-2 { background: rgba(192,192,192,0.18); }
+.sb-pos-3 { background: rgba(205,127,50,0.18); }
+.sb-empty {
+  text-align: center;
+  font-size: 22px;
+  opacity: 0.6;
+  padding: 60px 0;
+  font-family: 'Bricolage Grotesque';
+}
+.sb-current {
+  margin-top: 20px;
+  padding: 14px 20px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.scoreboard-launch {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.scoreboard-launch .btn { flex: 1; min-width: 200px; }
