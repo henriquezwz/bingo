@@ -38,7 +38,9 @@ const state = {
   uploadError: null,
   uploadPreview: null,
   pendingJoinName: null,   // nome aguardando o jogo começar
-  revealAnswer: false      // professor revelou a resposta (botão olho)
+  revealAnswer: false,     // professor revelou a resposta (botão olho)
+  scoreboard: false,       // modo placar projetável ao vivo (nesta tela)
+  standaloneScoreboard: false  // janela dedicada de placar (?placar=1)
 };
 
 let timerInterval = null;
@@ -519,6 +521,14 @@ function render() {
   const root = document.getElementById('root');
   let html = '';
 
+  // janela dedicada de placar (aberta com ?placar=1): só mostra o placar
+  if (state.standaloneScoreboard) {
+    html = renderStandaloneScoreboard();
+    root.innerHTML = html;
+    attachListeners();
+    return;
+  }
+
   if (state.view === 'landing') html = renderLanding();
   else if (state.view === 'student') html = renderStudent();
   else if (state.view === 'teacher') html = renderTeacher();
@@ -530,6 +540,55 @@ function render() {
   root.innerHTML = html;
   attachListeners();
   manageRoundTimer();
+}
+
+// placar em janela própria (read-only, sincroniza pelo Firebase)
+function renderStandaloneScoreboard() {
+  const game = state.game;
+  if (!game || !game.gameType) {
+    return `<div class="scoreboard-screen"><div class="sb-empty">aguardando o Mestre iniciar um jogo...</div></div>`;
+  }
+  const bd = getBingo(game.gameType);
+  if (game.phase === 'ended') {
+    // mostra ranking final na janela do projetor também
+    return renderRankingScoreboardStyle(bd, game);
+  }
+  if (!bd) {
+    return `<div class="scoreboard-screen"><div class="sb-empty">carregando...</div></div>`;
+  }
+  const sentences = bd.sentences || [];
+  const playersArr = Object.entries(state.players || {}).map(([slug, p]) => ({ slug, ...p }));
+  const ranked = rankPlayers(playersArr, game.drawnAt || {});
+  return renderScoreboard(ranked, bd, game, sentences, true);
+}
+
+function renderRankingScoreboardStyle(bd, game) {
+  const playersArr = Object.entries(state.players || {}).map(([slug, p]) => ({ slug, ...p }));
+  const ranked = rankPlayers(playersArr, game.drawnAt || {});
+  const medals = ['🥇', '🥈', '🥉'];
+  return `
+    <div class="scoreboard-screen">
+      <div class="scoreboard-head">
+        <div>
+          <div class="sb-title">🏆 RESULTADO FINAL</div>
+          <div class="sb-sub">${escapeHtml(bd?.name || '')}</div>
+        </div>
+      </div>
+      <div class="scoreboard-list">
+        ${ranked.map((p, i) => {
+          const pos = i + 1;
+          const cls = pos <= 3 ? `sb-top sb-pos-${pos}` : '';
+          const status = p.bingo ? '🏆 BINGO' : p.linha ? '🎯 LINHA' : `${p.correct} ✓`;
+          return `
+            <div class="sb-row ${cls}">
+              <div class="sb-rank">${medals[i] || pos + 'º'}</div>
+              <div class="sb-name">${escapeHtml(p.name)}</div>
+              <div class="sb-score">${status}</div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
 }
 
 // ─── Cronômetro da rodada ───────────────────────────────────────
@@ -642,6 +701,67 @@ function renderLanding() {
   `;
 }
 
+// ─── Ordenação compartilhada (com desempate sutil por velocidade) ──
+function rankPlayers(playersArr, drawnAt) {
+  return playersArr.map(p => {
+    const wins = checkWins(p.marks);
+    const avgSec = avgResponseSeconds(p.marks, drawnAt);
+    return { ...p, ...wins, avgSec };
+  }).sort((a, b) => {
+    if (a.bingo !== b.bingo) return b.bingo - a.bingo;
+    if (a.bingo && b.bingo && a.bingoAt !== b.bingoAt) return a.bingoAt - b.bingoAt;
+    if (a.linha !== b.linha) return b.linha - a.linha;
+    if (a.linha && b.linha && a.linhaAt !== b.linhaAt) return a.linhaAt - b.linhaAt;
+    if (a.correct !== b.correct) return b.correct - a.correct;
+    if (a.wrong !== b.wrong) return a.wrong - b.wrong;
+    // desempate sutil: quem respondeu mais rápido em média
+    if (a.avgSec != null && b.avgSec != null && a.avgSec !== b.avgSec) return a.avgSec - b.avgSec;
+    return 0;
+  });
+}
+
+// ─── Placar projetável ao vivo ──────────────────────────────────
+function renderScoreboard(ranked, bd, game, sentences, standalone = false) {
+  const drawn = game.drawnIndices || [];
+  const current = game.currentSentenceIdx >= 0 ? sentences[game.currentSentenceIdx] : null;
+  const medals = ['🥇', '🥈', '🥉'];
+
+  return `
+    <div class="scoreboard-screen">
+      <div class="scoreboard-head">
+        <div>
+          <div class="sb-title">🏆 PLACAR AO VIVO</div>
+          <div class="sb-sub">${escapeHtml(bd.name)} · frase ${drawn.length} de ${sentences.length}</div>
+        </div>
+        ${standalone ? '' : `<button id="btn-close-scoreboard" class="btn btn-outline-red btn-small">← voltar ao painel</button>`}
+      </div>
+
+      <div class="scoreboard-list">
+        ${ranked.length === 0 ? `
+          <div class="sb-empty">aguardando os súditos entrarem...</div>
+        ` : ranked.map((p, i) => {
+          const pos = i + 1;
+          const cls = pos <= 3 ? `sb-top sb-pos-${pos}` : '';
+          const status = p.bingo ? '🏆 BINGO'
+            : p.linha ? '🎯 LINHA'
+            : `${p.correct} ✓`;
+          return `
+            <div class="sb-row ${cls}">
+              <div class="sb-rank">${medals[i] || pos + 'º'}</div>
+              <div class="sb-name">${escapeHtml(p.name)} ${currentStreak(p.marks) >= 3 ? `<span class="streak-badge">🔥x${currentStreak(p.marks)}</span>` : ''}</div>
+              <div class="sb-score">${status}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${current ? `
+        <div class="sb-current">frase atual: <strong>"${escapeHtml(current.text)}"</strong></div>
+      ` : `<div class="sb-current">o Mestre vai sortear a próxima...</div>`}
+    </div>
+  `;
+}
+
 // ─── TEACHER ────────────────────────────────────────────────────
 function renderTeacher() {
   const game = state.game;
@@ -703,15 +823,12 @@ function renderTeacher() {
   const current = game.currentSentenceIdx >= 0 ? sentences[game.currentSentenceIdx] : null;
   const playersArr = Object.entries(state.players || {}).map(([slug, p]) => ({ slug, ...p }));
 
-  const ranked = playersArr.map(p => {
-    const wins = checkWins(p.marks);
-    return { ...p, ...wins };
-  }).sort((a, b) => {
-    if (a.bingo !== b.bingo) return b.bingo - a.bingo;
-    if (a.linha !== b.linha) return b.linha - a.linha;
-    if (a.correct !== b.correct) return b.correct - a.correct;
-    return a.wrong - b.wrong;
-  });
+  const ranked = rankPlayers(playersArr, game.drawnAt || {});
+
+  // modo placar projetável
+  if (state.scoreboard) {
+    return renderScoreboard(ranked, bd, game, sentences);
+  }
 
   const baseUrl = location.origin + location.pathname;
 
@@ -769,6 +886,15 @@ function renderTeacher() {
           🏁 ENCERRAR · VER RANKING
         </button>
         <button id="btn-reset" class="btn btn-outline-red">RESETAR</button>
+      </div>
+
+      <div class="scoreboard-launch">
+        <button id="btn-scoreboard" class="btn btn-primary" ${playersArr.length === 0 ? 'disabled' : ''}>
+          📺 PLACAR AO VIVO (nesta tela)
+        </button>
+        <button id="btn-scoreboard-window" class="btn btn-yellow" ${playersArr.length === 0 ? 'disabled' : ''}>
+          🖥️ ABRIR EM 2ª JANELA (projetor)
+        </button>
       </div>
 
       <div class="players-panel">
@@ -1009,23 +1135,7 @@ function renderRanking() {
   const playersArr = Object.entries(state.players || {}).map(([slug, p]) => ({ slug, ...p }));
   const drawnAt = game?.drawnAt || {};
 
-  const ranked = playersArr.map(p => {
-    const wins = checkWins(p.marks);
-    const avgSec = avgResponseSeconds(p.marks, drawnAt);
-    return { ...p, ...wins, avgSec };
-  }).sort((a, b) => {
-    // 1. BINGO vence; entre BINGOs, quem FECHOU PRIMEIRO ganha
-    if (a.bingo !== b.bingo) return b.bingo - a.bingo;
-    if (a.bingo && b.bingo && a.bingoAt !== b.bingoAt) return a.bingoAt - b.bingoAt;
-    // 2. LINHA; entre LINHAs, quem fechou primeiro
-    if (a.linha !== b.linha) return b.linha - a.linha;
-    if (a.linha && b.linha && a.linhaAt !== b.linhaAt) return a.linhaAt - b.linhaAt;
-    // 3. mais acertos, menos erros, mais rápido em média
-    if (a.correct !== b.correct) return b.correct - a.correct;
-    if (a.wrong !== b.wrong) return a.wrong - b.wrong;
-    if (a.avgSec && b.avgSec) return a.avgSec - b.avgSec;
-    return 0;
-  });
+  const ranked = rankPlayers(playersArr, drawnAt);
 
   const top3 = ranked.slice(0, 3);
   const isTeacher = state.isTeacher;
@@ -1290,6 +1400,9 @@ function attachListeners() {
     setState({ modal: { type: 'upload' }, uploadPreview: null, uploadError: null });
   });
   document.getElementById('btn-draw')?.addEventListener('click', handleDraw);
+  document.getElementById('btn-scoreboard')?.addEventListener('click', () => setState({ scoreboard: true }));
+  document.getElementById('btn-scoreboard-window')?.addEventListener('click', openScoreboardWindow);
+  document.getElementById('btn-close-scoreboard')?.addEventListener('click', () => setState({ scoreboard: false }));
   document.getElementById('btn-reveal')?.addEventListener('click', () => setState({ revealAnswer: !state.revealAnswer }));
   document.getElementById('btn-end')?.addEventListener('click', () => setState({ modal: { type: 'end' } }));
   document.getElementById('btn-reset')?.addEventListener('click', () => setState({ modal: { type: 'reset' } }));
@@ -1448,6 +1561,37 @@ async function handleDraw() {
   await dbDrawNext(state.bingoData.sentences.length);
 }
 
+// Abre o placar numa janela separada, tentando posicioná-la
+// automaticamente num segundo monitor (projetor). Se o navegador
+// não suportar, abre janela normal pra você arrastar.
+async function openScoreboardWindow() {
+  const url = location.origin + location.pathname + '?placar=1';
+
+  // tenta usar a Window Management API (Chrome/Edge) pra achar o 2º monitor
+  try {
+    if ('getScreenDetails' in window) {
+      const details = await window.getScreenDetails();
+      const external = details.screens.find(s => !s.isCurrent) || details.screens.find(s => s !== details.currentScreen);
+      if (external) {
+        const feat = `left=${external.availLeft},top=${external.availTop},width=${external.availWidth},height=${external.availHeight}`;
+        const win = window.open(url, 'placar_bingo', feat);
+        if (win) {
+          // garante tela cheia no monitor externo
+          setTimeout(() => { try { win.moveTo(external.availLeft, external.availTop); win.resizeTo(external.availWidth, external.availHeight); } catch {} }, 300);
+          return;
+        }
+      }
+    }
+  } catch (e) {
+    // permissão negada ou API indisponível → cai no fallback
+  }
+
+  // fallback: janela grande comum (você arrasta pro projetor e dá F11)
+  const w = Math.min(screen.availWidth, 1280);
+  const h = Math.min(screen.availHeight, 800);
+  window.open(url, 'placar_bingo', `width=${w},height=${h},left=120,top=80`);
+}
+
 async function handleEndConfirm() {
   setState({ modal: null });
   await dbEndGame();
@@ -1588,6 +1732,19 @@ async function handleUploadConfirm() {
 
     // pequeno delay pra customs carregarem do Firebase antes da primeira tela
     await new Promise(r => setTimeout(r, 400));
+
+    // modo janela de placar (?placar=1): só escuta e mostra o placar
+    const params = new URLSearchParams(location.search);
+    if (params.get('placar') === '1') {
+      attachGameListener();
+      attachPlayersListener();
+      const game = await dbGetGame();
+      const players = await dbGetPlayers();
+      const bd = game?.gameType ? getBingo(game.gameType) : null;
+      setState({ standaloneScoreboard: true, game, players, bingoData: bd });
+      document.title = 'Placar ao vivo · Bingo';
+      return;
+    }
 
     const sess = loadSession();
     if (sess?.role === 'teacher') {
