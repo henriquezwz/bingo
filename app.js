@@ -37,7 +37,8 @@ const state = {
   joinError: null,
   uploadError: null,
   uploadPreview: null,
-  pendingJoinName: null    // nome aguardando o jogo começar
+  pendingJoinName: null,   // nome aguardando o jogo começar
+  revealAnswer: false      // professor revelou a resposta (botão olho)
 };
 
 let timerInterval = null;
@@ -741,9 +742,16 @@ function renderTeacher() {
             <div style="opacity: 0.6;">leia com a majestade habitual, duas vezes</div>
           </div>
           <div class="quote">"${escapeHtml(current.text)}"</div>
-          <div class="meta">
-            ${current.context ? `<div class="context"><span style="opacity: 0.7;">contexto:</span> ${escapeHtml(current.context)}</div>` : ''}
-            <div class="answer">resposta: ${escapeHtml(current.answer)}</div>
+          <div class="answer-zone">
+            <button id="btn-reveal" class="btn-reveal">
+              ${state.revealAnswer ? '🙈 ocultar resposta' : '👁 ver resposta (só você)'}
+            </button>
+            ${state.revealAnswer ? `
+              <div class="answer-secret">
+                ${current.context ? `<span class="answer-secret-ctx">${escapeHtml(current.context)}</span>` : ''}
+                <span class="answer-secret-main">${escapeHtml(current.answer)}</span>
+              </div>
+            ` : ''}
           </div>
         ` : `
           <div class="text-center" style="padding: 14px 0;">
@@ -1282,6 +1290,7 @@ function attachListeners() {
     setState({ modal: { type: 'upload' }, uploadPreview: null, uploadError: null });
   });
   document.getElementById('btn-draw')?.addEventListener('click', handleDraw);
+  document.getElementById('btn-reveal')?.addEventListener('click', () => setState({ revealAnswer: !state.revealAnswer }));
   document.getElementById('btn-end')?.addEventListener('click', () => setState({ modal: { type: 'end' } }));
   document.getElementById('btn-reset')?.addEventListener('click', () => setState({ modal: { type: 'reset' } }));
   document.getElementById('btn-exit-teacher')?.addEventListener('click', handleExitTeacher);
@@ -1435,6 +1444,7 @@ async function handleStartGame(bingoId) {
 
 async function handleDraw() {
   if (!state.bingoData) return;
+  state.revealAnswer = false; // nova frase volta a esconder a resposta
   await dbDrawNext(state.bingoData.sentences.length);
 }
 
