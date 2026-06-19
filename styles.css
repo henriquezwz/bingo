@@ -907,3 +907,76 @@ label {
   flex-wrap: wrap;
 }
 .scoreboard-launch .btn { flex: 1; min-width: 200px; }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVIDADE — CELULARES (até 560px)
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 560px) {
+  .container { padding: 10px; }
+
+  /* cabeçalho empilha e não estoura */
+  .app-header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+  .app-header .title { font-size: 17px; }
+  .app-header .sub { font-size: 10px; }
+  .app-header .row { gap: 6px !important; flex-wrap: wrap; justify-content: flex-end; }
+
+  .score-pill { padding: 3px 8px; }
+  .score-pill .n { font-size: 18px; }
+  .score-pill .lbl { font-size: 8px; }
+
+  /* botões de ação em coluna, sem min-width que estoura */
+  .action-row { gap: 8px; }
+  .action-row .btn { min-width: 0; width: 100%; flex: none; font-size: 14px; padding: 12px; }
+  .scoreboard-launch { flex-direction: column; }
+  .scoreboard-launch .btn { min-width: 0; width: 100%; }
+
+  /* cartela ocupa a largura toda */
+  .bingo-card { padding: 10px; }
+  .bingo-grid { gap: 5px; }
+  .bingo-cell { font-size: 12px; padding: 2px; border-radius: 8px; }
+  .bingo-cell .display { font-size: 12px; line-height: 1.05; }
+  .bingo-cell .hint { font-size: 8px; }
+  .bingo-cell .mark { font-size: 20px; }
+
+  /* frase em destaque legível */
+  .phrase-display { font-size: 16px; }
+  .status-banner { width: 100%; }
+
+  /* painel de frase do professor */
+  .sentence-panel .quote { font-size: 17px; }
+
+  /* opções de bingo numa coluna */
+  .bingo-options { grid-template-columns: 1fr; }
+
+  /* lista de jogadores */
+  .player-row { gap: 10px; padding: 8px 10px; }
+  .player-row .mini-grid { transform: scale(0.85); transform-origin: left; }
+
+  /* placar projetável adaptado ao celular (caso abram no fone) */
+  .scoreboard-screen { padding: 14px; }
+  .sb-title { font-size: 26px; }
+  .sb-sub { font-size: 12px; }
+  .sb-row { padding: 10px 14px; gap: 10px; }
+  .sb-rank { font-size: 20px; min-width: 38px; }
+  .sb-name { font-size: 17px; }
+  .sb-score { font-size: 15px; }
+  .sb-current { font-size: 14px; }
+
+  /* ranking final */
+  .podium-spot { padding: 12px 8px; }
+  .podium-spot .name { font-size: 14px; }
+  .rank-row { font-size: 13px; gap: 8px; }
+
+  /* modais não vazam da tela */
+  .modal { width: 92%; max-width: 92%; padding: 18px; }
+
+  /* landing menor */
+  h1.display { font-size: 64px !important; }
+}
+
+/* telas muito estreitas (≤360px) */
+@media (max-width: 360px) {
+  .bingo-cell .display { font-size: 10.5px; }
+  .app-header .title { font-size: 15px; }
+  h1.display { font-size: 52px !important; }
+}
