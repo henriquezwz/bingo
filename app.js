@@ -16,7 +16,7 @@ const db = getDatabase(fbApp);
 
 // ─── Estado global ──────────────────────────────────────────────
 // ─── Configurações de emoção ────────────────────────────────────
-const ROUND_SECONDS = 45;   // tempo pra responder após o sorteio (trava depois)
+const ROUND_SECONDS = 100;   // tempo pra responder após o sorteio (trava depois)
 
 const state = {
   view: 'landing',
