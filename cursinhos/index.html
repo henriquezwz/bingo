@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opiniões sobre cursinhos</title>
+<style>
+:root{--azul:#1e5bd8;--lar:#ff7a1a;--fundo:#f6f8fc;--txt:#1b2333;--sub:#5b6577;--borda:#e3e8f1}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--fundo);color:var(--txt)}
+header{background:linear-gradient(120deg,var(--azul),#3b7bff);color:#fff;padding:22px 16px 18px}
+header h1{margin:0 0 4px;font-size:1.4rem}
+header p{margin:0;opacity:.9;font-size:.92rem}
+main{max-width:760px;margin:0 auto;padding:14px}
+.barra{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,textarea,button{font:inherit}
+.barra input,.barra select{flex:1;min-width:140px;padding:10px 12px;border:1px solid var(--borda);border-radius:10px;background:#fff}
+.nome{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:10px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+.nome input{flex:1;border:1px solid var(--borda);border-radius:8px;padding:8px}
+h2{font-size:1rem;color:var(--azul);margin:20px 4px 8px}
+.card{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.topo{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer}
+.topo b{font-size:1rem}
+.media{font-variant-numeric:tabular-nums;color:var(--sub);font-size:.88rem;white-space:nowrap}
+.media .n{color:var(--lar);font-weight:700;font-size:1rem}
+.corpo{margin-top:10px;border-top:1px solid var(--borda);padding-top:10px;display:none}
+.card.aberto .corpo{display:block}
+.estrelas button{background:none;border:0;font-size:1.6rem;color:#cfd6e3;cursor:pointer;padding:2px}
+.estrelas button.on{color:var(--lar)}
+textarea{width:100%;min-height:64px;border:1px solid var(--borda);border-radius:8px;padding:8px;margin-top:6px}
+.salvar{margin-top:6px;background:var(--azul);color:#fff;border:0;border-radius:9px;padding:9px 16px;cursor:pointer}
+.salvar:active{transform:scale(.97)}
+.op{font-size:.9rem;padding:8px 0;border-top:1px dashed var(--borda)}
+.op .q{color:var(--sub);font-size:.82rem}
+.aviso{color:var(--sub);font-size:.85rem;text-align:center;padding:10px}
+</style>
+</head>
+<body>
+<header><h1>Opiniões sobre cursinhos</h1><p>Dê sua nota e conte como foi. Aproveite os descontos da Black Friday com mais segurança.</p></header>
+<main>
+<div class="nome"><span>Seu nome:</span><input id="nome" placeholder="Como quer aparecer"></div>
+<div class="barra">
+<input id="busca" placeholder="Buscar curso">
+<select id="ordem"><option value="lista">Ordem da lista</option><option value="nota">Melhor nota</option><option value="qtd">Mais avaliados</option></select>
+</div>
+<div id="status" class="aviso">Carregando opiniões…</div>
+<div id="lista"></div>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { firebaseConfig } from "../firebase-config.js";
+const CAT={
+"Química":["Iquimica","Discursivas de química","Babi Correa","Tathi na química","Moisés Medeiros"],
+"Biologia":["Bioatp","Discursivas de bio","Neuralia","Ferretto (Landim)","Gui Goulart","Emmanoel (Gordinho das Aprovações, do Medway)"],
+"Física":["Universo narrado – lições de física","Ricci","Rafael Medeiros"],
+"Linguagens":["Lauro","Fernanda Pessoa","Autoria","Felipe Pereira"],
+"Matemática":["Matemagicando","Universo narrado","Mente matemática do professor Fredão","Plataforma discursiva de matemática","Ronaebson","Mateco","Matemática MC","Matemática Online","Vital Matemática"],
+"Redação":["Fernanda Pessoa","Autoria","Corrija-me","Aníbal de Redação","Jana Rabelo","Bella Nazar","Luma e ponto","Aula da Marcella"],
+"Plataformas de correção":["Fernanda Pessoa","Corrija-me","Tanay"],
+"Humanas":["Thais Formagio","PRD","Filonared","Humanizarte","História Online","Terra Negra","Humanizando","Edu Morais"],
+"Plataformas de questões":["Hospital Questiona","AIO","Estuda.com","nogabarito.com.br"]};
+const key=(c,n)=>(c+"__"+n).normalize("NFD").replace(/[^\w]+/g,"_").toLowerCase();
+let todas={}, meuId=null, db=null, abertos=new Set(), rasc={};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+try{$("nome").value=localStorage.getItem("nome")||""}catch(e){}
+$("nome").oninput=e=>{try{localStorage.setItem("nome",e.target.value)}catch(_){}};
+$("busca").oninput=render;$("ordem").onchange=render;
+
+function stats(k){const ops=[];for(const uid in todas){const r=(todas[uid].r||{})[k];if(r&&r.nota)ops.push({...r,uid,nome:todas[uid].nome||"Anônimo"})}
+const m=ops.length?ops.reduce((a,o)=>a+o.nota,0)/ops.length:0;return{ops,m}}
+function render(){
+const q=$("busca").value.trim().toLowerCase(),ord=$("ordem").value;let h="";
+for(const c in CAT){let itens=CAT[c].map((n,i)=>({n,i,k:key(c,n),...stats(key(c,n))})).filter(x=>x.n.toLowerCase().includes(q));
+if(!itens.length)continue;
+if(ord==="nota")itens.sort((a,b)=>b.m-a.m||b.ops.length-a.ops.length);
+if(ord==="qtd")itens.sort((a,b)=>b.ops.length-a.ops.length);
+h+=`<h2>${c}</h2>`;
+for(const x of itens){const meu=(todas[meuId]?.r||{})[x.k]||{};const d=rasc[x.k]||{nota:meu.nota||0,txt:meu.txt||""};
+h+=`<div class="card ${abertos.has(x.k)?"aberto":""}" data-k="${x.k}"><div class="topo" data-t="${x.k}"><b>${esc(x.n)}</b><span class="media">${x.ops.length?`<span class="n">${x.m.toFixed(1)}</span> ★ · ${x.ops.length} opini${x.ops.length>1?"ões":"ão"}`:"sem opiniões"}</span></div>
+<div class="corpo">${db?`<div class="estrelas">${[1,2,3,4,5].map(s=>`<button data-s="${s}" data-k="${x.k}" class="${s<=d.nota?"on":""}" aria-label="${s} estrelas">★</button>`).join("")}</div>
+<textarea data-x="${x.k}" placeholder="O que achou? Preço, didática, material…">${esc(d.txt)}</textarea><button class="salvar" data-v="${x.k}">Salvar opinião</button>`:""}
+${x.ops.map(o=>`<div class="op"><b>${esc(o.nome)}</b> <span class="q">${"★".repeat(o.nota)}</span><br>${esc(o.txt||"")}</div>`).join("")}</div></div>`}}
+$("lista").innerHTML=h||`<div class="aviso">Nada encontrado.</div>`}
+document.addEventListener("click",async e=>{const t=e.target;
+if(t.dataset.t){abertos.has(t.dataset.t)?abertos.delete(t.dataset.t):abertos.add(t.dataset.t);render();return}
+const tp=t.closest&&t.closest(".topo");if(tp){const k=tp.dataset.t;abertos.has(k)?abertos.delete(k):abertos.add(k);render();return}
+if(t.dataset.s){const k=t.dataset.k;rasc[k]={...(rasc[k]||{txt:document.querySelector(`[data-x="${k}"]`).value}),nota:+t.dataset.s};render();return}
+if(t.dataset.v){const k=t.dataset.v,txt=document.querySelector(`[data-x="${k}"]`).value.trim();const nota=(rasc[k]||{}).nota||((todas[meuId]?.r||{})[k]||{}).nota;
+if(!nota){alertMsg("Escolha uma nota de 1 a 5.");return}const nome=$("nome").value.trim();if(!nome){alertMsg("Coloque seu nome no topo.");$("nome").focus();return}
+const atual=todas[meuId]||{r:{}};const r={...(atual.r||{}),[k]:{nota,txt}};t.textContent="Salvando…";
+try{await set(ref(db,"cursinhos/"+meuId),{nome,r});delete rasc[k];}catch(err){alertMsg("Não deu para salvar. Tente de novo.")}}});
+function alertMsg(m){$("status").textContent=m;$("status").style.display="block";setTimeout(()=>{$("status").style.display="none"},3000)}
+document.addEventListener("input",e=>{const k=e.target.dataset.x;if(k){rasc[k]={...(rasc[k]||{nota:((todas[meuId]?.r||{})[k]||{}).nota||0}),txt:e.target.value}}});
+render();
+const timer=setTimeout(()=>{$("status").textContent="Não foi possível carregar as opiniões agora."},10000);
+try{meuId=localStorage.getItem("uid")}catch(e){}
+if(!meuId){meuId="u"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);try{localStorage.setItem("uid",meuId)}catch(e){}}
+db=getDatabase(initializeApp(firebaseConfig));
+onValue(ref(db,"cursinhos"),snap=>{clearTimeout(timer);todas=snap.val()||{};$("status").style.display="none";render()},()=>{clearTimeout(timer);$("status").textContent="Erro ao carregar opiniões."});
+</script>
+</body>
+</html>
